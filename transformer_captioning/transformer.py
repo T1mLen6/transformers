@@ -221,6 +221,11 @@ class TransformerDecoder(nn.Module):
 
         # Unsqueeze feature embedding along dimension 1
         # expected feature embedding output shape : (N, 1, D) 
+        caption_embedding = self.caption_embedding(captions)
+        caption_embedding = self.positional_encoding(caption_embedding)
+
+        feature_embedding = self.feature_embedding(features.unsqueeze(1))  
+
         return feature_embedding, caption_embedding
 
     def get_causal_mask(self, _len):
@@ -228,6 +233,7 @@ class TransformerDecoder(nn.Module):
         # This mask is multiplicative
         # setting mask[i,j] = 0 means jth element of the sequence is not used 
         # to predict the ith element of the sequence.
+        mask = torch.triu(torch.ones(_len, _len, device=self.device), diagonal=1)
         return mask
                                       
     def forward(self, features, captions):
