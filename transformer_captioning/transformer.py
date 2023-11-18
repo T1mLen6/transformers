@@ -76,7 +76,7 @@ class MultiHeadAttentionLayer(AttentionLayer):
 
         #compute dot-product attention separately for each head. Don't forget the scaling value!
         #Expected shape of dot_product is (N, H, S, T)
-        dot_product = torch.bmm(query, key.transpose(2, 3)) / (D // H) ** 0.5
+        dot_product = torch.matmul(query, key.transpose(2, 3)) / (D // H) ** 0.5
         if attn_mask is not None:
             # convert att_mask which is multiplicative, to an additive mask
             # Hint : If mask[i,j] = 0, we want softmax(QKT[i,j] + additive_mask[i,j]) to be 0
@@ -87,7 +87,7 @@ class MultiHeadAttentionLayer(AttentionLayer):
         # apply softmax, dropout, and use value
         y = F.softmax(dot_product, dim=-1)
         y = self.dropout(y)
-        y = torch.bmm(y, value)
+        y = torch.matmul(y, value)
         
         # concat embeddings from different heads, and project
         output = y.transpose(1, 2).contiguous().view(N, S, D)
@@ -105,8 +105,9 @@ class PositionalEncoding(nn.Module):
         N, S, D = x.shape
         # TODO - add the encoding to x
         output = torch.empty((N, S, D))
+        #print(x.size())
 
-        output = x + self.encoding[:,:S,:]
+        output = x + self.encoding.weight.unsqueeze(0)[:, :S, :]
         output = self.dropout(output)
    
         return output
@@ -167,7 +168,7 @@ class FeedForwardBlock(nn.Module):
         # Then add a residual connection to the original input, and finally apply normalization. #############################
         mlp_output = self.mlp(seq)
         mlp_output = self.dropout(mlp_output)
-        output = self.norm(seq + mlp_output)
+        out = self.norm(seq + mlp_output)
         return out
 
 class DecoderLayer(nn.Module):
@@ -225,6 +226,7 @@ class TransformerDecoder(nn.Module):
         caption_embedding = self.positional_encoding(caption_embedding)
 
         feature_embedding = self.feature_embedding(features.unsqueeze(1))  
+        print(feature_embedding)#.size())
 
         return feature_embedding, caption_embedding
 
