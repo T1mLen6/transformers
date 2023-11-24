@@ -54,11 +54,11 @@ class ViT(nn.Module):
         self.num_classes = num_classes
         self.device = device
 
-        self.patch_embedding = None # TODO (Linear Layer that takes as input a patch and outputs a d_model dimensional vector)
-        self.positional_encoding = None # TODO (use the positional encoding from the transformer captioning solution)
-        self.fc = None # TODO (takes as input the embedding corresponding to the [CLS] token and outputs the logits for each class)
-        self.cls_token = None # TODO (learnable [CLS] token embedding)
-
+        #self.patch_embedding = None # TODO (Linear Layer that takes as input a patch and outputs a d_model dimensional vector)
+        #self.positional_encoding = None # TODO (use the positional encoding from the transformer captioning solution)
+        #self.fc = None # TODO (takes as input the embedding corresponding to the [CLS] token and outputs the logits for each class)
+        #self.cls_token = None # TODO (learnable [CLS] token embedding)
+        print(num_patches)
         self.patch_embedding = nn.Linear(patch_dim * patch_dim * 3, d_model)
         self.positional_encoding = PositionalEncoding(d_model)
         self.fc = nn.Linear(d_model, num_classes)
@@ -81,10 +81,11 @@ class ViT(nn.Module):
 
         # TODO - Break images into a grid of patches
         # Feel free to use pytorch built-in functions to do this
+        #print('iimage size:', images.size())
         patches = images.unfold(2, self.patch_dim, self.patch_dim).unfold(3, self.patch_dim, self.patch_dim)
         patches = patches.contiguous().view(patches.size(0), -1, self.patch_dim * self.patch_dim * 3)
-        
-        return images
+        #print('iimage size:', images.size())
+        return patches
 
     def forward(self, images):
         """
@@ -101,8 +102,9 @@ class ViT(nn.Module):
         cls_token = self.cls_token.expand(patches_embedded.size(0), -1, -1)
         output = torch.cat([cls_token, patches_embedded], dim=1) # TODO (append a CLS token to the beginning of the sequence of patch embeddings)
 
-        output = self.positional_encoding(patches_embedded)
-        mask = torch.ones((self.num_patches, self.num_patches), device=self.device)
+        output = self.positional_encoding(output)
+        #mask = torch.ones((self.num_patches, self.num_patches), device=self.device)
+        mask = None
 
         for layer in self.layers:
             output = layer(output, mask)
