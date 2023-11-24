@@ -25,7 +25,7 @@ transformer = ViT(
                 num_classes=10,
                 device=device
             )
-trainer = Trainer(transformer, train_dataloader, test_dataloader, learning_rate=1e-4, batch_size=64, print_every=1, num_epochs=100)
+trainer = Trainer(transformer, train_dataloader, test_dataloader, learning_rate=1e-4, batch_size=64, print_every=1, num_epochs=120)
 trainer.train()
 
 # Plot the training loss, train accuracy and test accuracy
